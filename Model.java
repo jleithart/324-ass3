@@ -107,6 +107,12 @@ public class Model extends JComponent
     		this.y = iY;
     		this.z = iZ;
     	}
+
+        public void SetCoords(double iX, double iY, double iZ){
+            this.x = iX;
+            this.y = iY;
+            this.z = iZ;
+        }
     }
 
     // The current position of the "pen"
@@ -139,7 +145,9 @@ public class Model extends JComponent
         FRAME_WIDTH = getWidth();
 
         ShowViewport(g);
-        DrawAxis(g);
+        //DrawAxis(g);
+        PlotGraph(g);
+        //DrawCube(g);
      }
 
      /*
@@ -153,10 +161,10 @@ public class Model extends JComponent
         f.setVisible( true );
 
         DefineViewport(0, 0, 1, 1);
-        DefineWindow(-5, -5, 5, 5);
+        DefineWindow(-20, -20, 20, 20);
 
-        Point3D focalPoint = new Point3D(1, 0, 1);
-        DefineCameraTransform(focalPoint, 30, 45, 0, 20);
+        Point3D focalPoint = new Point3D(0, 0, 0);
+        DefineCameraTransform(focalPoint, 30, 45, 0, 50);
 
         // set the values of each viewport
         //SetViewport();
@@ -166,12 +174,10 @@ public class Model extends JComponent
 
      public static double [][] MatrixMultiply(double[][] M, double[][] N){
 		assert(M[0].length == N.length);
-		int mColumns = M.length;
-		int mRows = M[0].length;
-		int nColumns = N.length;
-		int nRows = N[0].length;
-
-		System.out.println("rows::" + mRows + " cols::" + nColumns);
+		int mColumns = M[0].length;
+		int mRows = M.length;
+		int nColumns = N[0].length;
+		int nRows = N.length;
 
 		double [][]retval = new double[mRows][nColumns];
 		for(int i = 0; i < mRows; i++){
@@ -212,7 +218,19 @@ public class Model extends JComponent
      	Point2D tmpCoordinate = new Point2D(0, 0);
 
      	tmpCoordinate.x = LinearInterpolation(curVP.LeftX, curVP.RightX, curWin.LeftX, curWin.RightX, point.x);
+        if(tmpCoordinate.x < curVP.LeftX){
+            tmpCoordinate.x = curVP.LeftX;
+        }
+        else if(tmpCoordinate.x > curVP.RightX){
+            tmpCoordinate.x = curVP.RightX;
+        }
      	tmpCoordinate.y = LinearInterpolation(curVP.BotY, curVP.TopY, curWin.BotY, curWin.TopY, point.y);
+        if(tmpCoordinate.y < curVP.BotY){
+            tmpCoordinate.y = curVP.BotY;
+        }
+        else if(tmpCoordinate.y > curVP.TopY){
+            tmpCoordinate.y = curVP.TopY;
+        }
 
      	return tmpCoordinate;
      }
@@ -248,7 +266,7 @@ public class Model extends JComponent
      						  		{0, 0, 0, 1}
      							};
      	double [][]retMatrix = new double[4][4];
-     	double radianVal = 3.14*transformValue/180;
+     	double radianVal = 3.14159*transformValue/180;
 
      	switch(transformCode){
      		case X_TRANS:
@@ -378,8 +396,8 @@ public class Model extends JComponent
         // given a viewport coordinate, find the pixel placement
         //user linear interpolation:
         // x = x(0) + x1 - x0(y-y0/y1-y0)
-        tmpCoordinate.x = (int) LinearInterpolation(0, FRAME_WIDTH, curVP.LeftX, curVP.RightX, coordinate.x);
-        tmpCoordinate.y = (int) LinearInterpolation(FRAME_HEIGHT, 0, curVP.BotY, curVP.TopY, coordinate.y);
+        tmpCoordinate.x = (int) LinearInterpolation(0 + 5, FRAME_WIDTH - 5, curVP.LeftX, curVP.RightX, coordinate.x);
+        tmpCoordinate.y = (int) LinearInterpolation(FRAME_HEIGHT - 5, 0 + 5, curVP.BotY, curVP.TopY, coordinate.y);
         
 
         
@@ -402,10 +420,66 @@ public class Model extends JComponent
         drawFirstPoint = ViewPortToFrameWindow(firstPoint);
         drawSecondPoint = ViewPortToFrameWindow(secondPoint);
 
-        g.drawLine(drawFirstPoint.x + 5, drawFirstPoint.y - 5, drawSecondPoint.x - 5, drawFirstPoint.y - 5);
-        g.drawLine(drawSecondPoint.x - 5, drawFirstPoint.y - 5, drawSecondPoint.x - 5, drawSecondPoint.y + 5);
-        g.drawLine(drawSecondPoint.x - 5, drawSecondPoint.y + 5, drawFirstPoint.x + 5, drawSecondPoint.y + 5);
-        g.drawLine(drawFirstPoint.x + 5, drawSecondPoint.y + 5, drawFirstPoint.x + 5, drawFirstPoint.y - 5);
+        g.drawLine(drawFirstPoint.x, drawFirstPoint.y, drawSecondPoint.x, drawFirstPoint.y);
+        g.drawLine(drawSecondPoint.x, drawFirstPoint.y, drawSecondPoint.x, drawSecondPoint.y);
+        g.drawLine(drawSecondPoint.x, drawSecondPoint.y, drawFirstPoint.x, drawSecondPoint.y);
+        g.drawLine(drawFirstPoint.x, drawSecondPoint.y, drawFirstPoint.x, drawFirstPoint.y);
+     }
+
+     /*
+     * Plots the given equation
+     */
+     public static void PlotGraph(Graphics g){
+        //start at the low point
+        Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
+        Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
+        //changed for DEBUGGING FIX LATER
+        double inc = 0.2;
+        for(double y = -1.25; y <= 1.25; y += inc){
+        //double y = -1.25;
+            for(double x = -1.25; x <= 1.25; x+=inc){
+        //double x = -1.25;
+                //draw the small square
+                firstPoint.SetCoords(x, y, 0);
+                secondPoint.SetCoords(x+inc, y+inc, 0);
+                DrawSquare(g, firstPoint, secondPoint);
+            }
+        }
+
+
+     }
+
+     /*
+     *
+     */
+     public static void DrawSquare(Graphics g, Point3D leftPoint, Point3D rightPoint){
+        Point3D PointToDraw = new Point3D(leftPoint.x, leftPoint.y, PlotFunction(leftPoint.x, leftPoint.y));
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        //leftX -> rightX
+        PointToDraw.SetCoords(rightPoint.x, leftPoint.y, PlotFunction(rightPoint.x, leftPoint.y));
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //botY -> topY
+        PointToDraw.SetCoords(rightPoint.x, rightPoint.y, PlotFunction(rightPoint.x, rightPoint.y));
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //rightX -> leftX
+        PointToDraw.SetCoords(leftPoint.x, rightPoint.y, PlotFunction(leftPoint.x, rightPoint.y));
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //topY -> botY
+        PointToDraw.SetCoords(leftPoint.x, leftPoint.y, PlotFunction(leftPoint.x, leftPoint.y));
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+     }
+
+     /*
+     * Given an x & y value return the z value
+     */
+     public static double PlotFunction(double x, double y){
+        double z;
+        z = x*x + y*y - (x*x*x) - 8*x*y*y*y*y;
+        return z;
      }
 
      /*
@@ -416,12 +490,23 @@ public class Model extends JComponent
      public static void DrawAxis(Graphics g)
      {
 
-        drawPoint drawFirstPoint;
-        drawPoint drawSecondPoint;
-
         //x-axis
         Point3D lowAxisPoint = new Point3D(-5, 0, 0);
         Point3D hiAxisPoint = new Point3D(5, 0, 0);
+
+        Move3D(lowAxisPoint, IDENTITY, CAMERA);
+        Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
+
+        //y-axis
+        lowAxisPoint.SetCoords(0, -5, 0);
+        hiAxisPoint.SetCoords(0, 5, 0);
+
+        Move3D(lowAxisPoint, IDENTITY, CAMERA);
+        Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
+
+        //z-axis
+        lowAxisPoint.SetCoords(0, 0, -5);
+        hiAxisPoint.SetCoords(0, 0, 5);
 
         Move3D(lowAxisPoint, IDENTITY, CAMERA);
         Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
@@ -461,6 +546,64 @@ public class Model extends JComponent
         g.drawLine(drawFirstPoint.x, drawFirstPoint.y, drawSecondPoint.x, drawSecondPoint.y);
         //end y axis
         */
+     }
+
+     /*
+     *
+     */
+     public static void DrawCube(Graphics g){
+        Point3D PointToDraw = new Point3D(1.0, 0, 1.0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 1.0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 1.0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //RIGHT SQUARE
+        PointToDraw.SetCoords(1.0, 0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 1.0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 1.0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //LEFT SQUARE
+        PointToDraw.SetCoords(0, 0, 1.0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 1.0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 1.0, 1.0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        // BACK SQUARE
+        PointToDraw.SetCoords(0, 0, 0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(1.0, 1.0, 0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 1.0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+
      }
 
      /*
