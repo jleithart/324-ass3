@@ -12,8 +12,8 @@ import javax.swing.*;
 
 public class Model extends JComponent
 {
-    static int FRAME_HEIGHT = 800;
-    static int FRAME_WIDTH = 800;
+    static int FRAME_HEIGHT = 500;
+    static int FRAME_WIDTH = 500;
 
     public enum TRANSFORM_CODE { X_TRANS, Y_TRANS, Z_TRANS, Y_ROT, X_ROT, Z_ROT, PERSPECTIVE};
 
@@ -28,6 +28,63 @@ public class Model extends JComponent
 									{0, 0, 1, 0},
 									{0, 0, 0, 1}
 								 };
+
+    private static class Object{
+        public String name;
+        public double [][]aT;
+
+        //list of vertices to draw
+        public Point3D []vertices;
+
+        private Object(Point3D [] points, double [][]transform, String name){
+            this.vertices = points;
+
+            this.aT = transform;
+            this.name = name;
+        }
+
+        // Draw Square object
+        public void DrawObject(Graphics g, double [][] transform){
+            double [][]M = MatrixMultiply(this.aT, transform);
+            Move3D(vertices[0], M, CAMERA);
+            for(int i = 1; i < this.vertices.length; i++){
+                Draw3D(g, vertices[i], M, CAMERA);
+            }
+            Draw3D(g, vertices[0], M, CAMERA);
+
+        }
+    }
+
+    private static class Assembly{
+        public String name;
+        public double [][]aT;
+        public Assembly []assemblies;
+        public Object drawnObject;
+
+        private Assembly(Assembly []in_assem, double [][]transform, Object inputObject, String name){
+            this.name = name;
+            this.aT = transform;
+            this.assemblies = in_assem;
+            this.drawnObject = inputObject;
+
+        }
+
+        public void Assemble(Graphics g, double [][]transform){
+            //if nil call list of assemblies
+            if(drawnObject != null){
+                double [][]M = MatrixMultiply(this.aT, transform);
+                //drawnObject.aT = transform;
+                drawnObject.DrawObject(g, M);
+            }
+            for(int i = 0; i < this.assemblies.length; i++){
+                double [][]M = MatrixMultiply(this.aT, transform);
+                //PrintMatrix(M);
+                //assemblies[i].aT = M;
+                //assemblies[i].aT = this.aT;
+                assemblies[i].Assemble(g, M);
+            }
+        }
+    }
 
 
     // A viewport struct/class
@@ -145,9 +202,12 @@ public class Model extends JComponent
         FRAME_WIDTH = getWidth();
 
         ShowViewport(g);
-        //DrawAxis(g);
-        PlotGraph(g);
+
+        //PlotGraph(g);
+
+        //DrawRubiksCube(g);
         //DrawCube(g);
+        DrawHallway(g);
      }
 
      /*
@@ -161,10 +221,25 @@ public class Model extends JComponent
         f.setVisible( true );
 
         DefineViewport(0, 0, 1, 1);
-        DefineWindow(-20, -20, 20, 20);
 
+        //window for the Z graph
+        //DefineWindow(-1.25, -1.25, 1.25, 1.25);
+
+        //window for the rubik's cube
+        //DefineWindow(-15, -15, 15, 15);
+
+        //window for the hallway
+        DefineWindow(-80, -80, 150, 150);
+
+        //the focal point for the graph and rubik's cube
+        //Point3D focalPoint = new Point3D(0, 0, 0);
+        //DefineCameraTransform(focalPoint, 30, 45, 0, 10);
+
+        // the camera tranform for the hallway
         Point3D focalPoint = new Point3D(0, 0, 0);
-        DefineCameraTransform(focalPoint, 30, 45, 0, 50);
+        DefineCameraTransform(focalPoint, 0, 45, 0, 100);
+
+
 
         // set the values of each viewport
         //SetViewport();
@@ -199,6 +274,18 @@ public class Model extends JComponent
 
 		return retval;
 	}
+
+    public static void PrintMatrix(double [][] M){
+        for(int i = 0; i < M.length; i++){
+            System.out.print("|");
+            for(int j = 0; j < M[0].length; j++){
+                System.out.print(" " + M[i][j] + " ");
+            }
+            System.out.println("|");
+
+        }
+        System.out.println();
+    }
 
      public static void DefineWindow(double LX, double BY, double RX, double TY){
      	curWin.LeftX = LX;
@@ -388,7 +475,6 @@ public class Model extends JComponent
       * Converts the viewport coordinates to actual display frame coordinates
      */
 
-     // TODO! REWORK FOR SINGLE VIEWPORT
      public static drawPoint ViewPortToFrameWindow(Point2D coordinate){
 
         drawPoint tmpCoordinate = new drawPoint(0, 0);
@@ -434,9 +520,12 @@ public class Model extends JComponent
         Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
         Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
         //changed for DEBUGGING FIX LATER
-        double inc = 0.2;
+        double inc = 0.02;
+//        double y = -1.25;
         for(double y = -1.25; y <= 1.25; y += inc){
-        //double y = -1.25;
+  //      double y = -1.25;
+            firstPoint.SetCoords(y, -1.25, PlotFunction(y, -1.25));
+            //Move3D(firstPoint, IDENTITY, CAMERA);
             for(double x = -1.25; x <= 1.25; x+=inc){
         //double x = -1.25;
                 //draw the small square
@@ -480,72 +569,6 @@ public class Model extends JComponent
         double z;
         z = x*x + y*y - (x*x*x) - 8*x*y*y*y*y;
         return z;
-     }
-
-     /*
-     * Draws the axis for the window passed in
-     */
-
-     //TODO REWORK FOR 3D
-     public static void DrawAxis(Graphics g)
-     {
-
-        //x-axis
-        Point3D lowAxisPoint = new Point3D(-5, 0, 0);
-        Point3D hiAxisPoint = new Point3D(5, 0, 0);
-
-        Move3D(lowAxisPoint, IDENTITY, CAMERA);
-        Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
-
-        //y-axis
-        lowAxisPoint.SetCoords(0, -5, 0);
-        hiAxisPoint.SetCoords(0, 5, 0);
-
-        Move3D(lowAxisPoint, IDENTITY, CAMERA);
-        Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
-
-        //z-axis
-        lowAxisPoint.SetCoords(0, 0, -5);
-        hiAxisPoint.SetCoords(0, 0, 5);
-
-        Move3D(lowAxisPoint, IDENTITY, CAMERA);
-        Draw3D(g, hiAxisPoint, IDENTITY, CAMERA);
-
-        //x-axis
-        /*firstAxisPoint.SetCoords(WindowList[window].LeftX, (WindowList[window].BotY + WindowList[window].TopY)/2);
-        secondAxisPoint.SetCoords(WindowList[window].RightX, (WindowList[window].BotY + WindowList[window].TopY)/2);
-
-        firstViewPoint = WindowToViewPort(firstAxisPoint, window);
-        secondViewPoint = WindowToViewPort(secondAxisPoint, window);
-
-
-        drawFirstPoint = ViewPortToFrameWindow(firstViewPoint, WindowList[window].Quadrant);
-        drawSecondPoint = ViewPortToFrameWindow(secondViewPoint, WindowList[window].Quadrant);
-        g.drawLine(drawFirstPoint.x, drawFirstPoint.y, drawSecondPoint.x, drawSecondPoint.y);
-        //end x-axis
-        */
-
-        //y-axis
-        // the 1st quadrant has no negative axis
-        /*
-        if(window != 0){
-            firstAxisPoint.SetCoords((WindowList[window].LeftX + WindowList[window].RightX)/2, WindowList[window].BotY);
-            secondAxisPoint.SetCoords((WindowList[window].LeftX + WindowList[window].RightX)/2, WindowList[window].TopY);
-        }
-        else{
-            firstAxisPoint.SetCoords(WindowList[window].LeftX, WindowList[window].BotY);
-            secondAxisPoint.SetCoords(WindowList[window].LeftX, WindowList[window].TopY);
-        }
-
-        firstViewPoint = WindowToViewPort(firstAxisPoint, window);
-        secondViewPoint = WindowToViewPort(secondAxisPoint, window);
-
-
-        drawFirstPoint = ViewPortToFrameWindow(firstViewPoint, WindowList[window].Quadrant);
-        drawSecondPoint = ViewPortToFrameWindow(secondViewPoint, WindowList[window].Quadrant);
-        g.drawLine(drawFirstPoint.x, drawFirstPoint.y, drawSecondPoint.x, drawSecondPoint.y);
-        //end y axis
-        */
      }
 
      /*
@@ -616,6 +639,145 @@ public class Model extends JComponent
         g.drawString("CS 324", 5, 20);
         g.drawString("February 14, 2014", 5, 30);
         g.drawString("Assignment 2", 5, 40);
+     }
+
+     public static Assembly [] AppendToArray(Assembly []input, Assembly addition){
+        Assembly []newArray = new Assembly[input.length + 1];
+        for(int i = 0; i < input.length; i++){
+            newArray[i] = input[i];
+        }
+        newArray[newArray.length - 1] = addition;
+        return newArray;
+     }
+
+     public static void DrawRubiksCube(Graphics g){
+        //draw a square
+        Point3D [] tmpPoints = new Point3D [4];
+        tmpPoints[0] = new Point3D(-1, -1, 1);
+        tmpPoints[1] = new Point3D(-1, 1, 1);
+        tmpPoints[2] = new Point3D(1, 1, 1);
+        tmpPoints[3] = new Point3D(1, -1, 1);
+
+        double [][]ActiveTransform = new double[4][4];
+
+        Object square = new Object(tmpPoints, IDENTITY, "Square");
+        Assembly []EMPTY = new Assembly[0];
+        Assembly []cube_array = new Assembly[0];
+        Assembly []row_array = new Assembly[0];
+        Assembly []side_array = new Assembly[0];
+        Assembly []rubik_array = new Assembly[0];
+
+//        square.DrawObject(g);
+        Assembly front = new Assembly(EMPTY, IDENTITY, square, "Front");
+        cube_array = AppendToArray(cube_array, front);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_ROT, 90);
+        Assembly bot = new Assembly(EMPTY, ActiveTransform, square, "Bottom");
+        cube_array = AppendToArray(cube_array, bot);
+
+        //uses the bottom assembly
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_ROT, 180);
+        Assembly back = new Assembly(EMPTY, ActiveTransform, square, "Back");
+        cube_array = AppendToArray(cube_array, back);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_ROT, -90);
+        Assembly top = new Assembly(EMPTY, ActiveTransform, square, "Top");
+        cube_array = AppendToArray(cube_array, top);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        Assembly left = new Assembly(EMPTY, ActiveTransform, square, "Left");
+        cube_array = AppendToArray(cube_array, left);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        Assembly right = new Assembly(EMPTY, ActiveTransform, square, "Right");
+        cube_array = AppendToArray(cube_array, right);
+
+        Assembly cube = new Assembly(cube_array, IDENTITY, null, "Cube 1");
+        row_array = AppendToArray(row_array, cube);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, 2.2);
+        Assembly cube2 = new Assembly(cube_array, ActiveTransform, null, "Cube 2");
+        row_array = AppendToArray(row_array, cube2);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -2.2);
+        Assembly cube3 = new Assembly(cube_array, ActiveTransform, null, "Cube 3");
+        row_array = AppendToArray(row_array, cube3);
+
+        Assembly row1 = new Assembly(row_array, IDENTITY, null, "Row 1");
+        side_array = AppendToArray(side_array, row1);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 2.2);
+        Assembly row2 = new Assembly(row_array, ActiveTransform, null, "Row 2");
+        side_array = AppendToArray(side_array, row2);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, -2.2);
+        Assembly row3 = new Assembly(row_array, ActiveTransform, null, "Row 3");
+        side_array = AppendToArray(side_array, row3);
+
+        Assembly side1 = new Assembly(side_array, IDENTITY, null, "Side 1");
+        rubik_array = AppendToArray(rubik_array, side1);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, 2.2);
+        Assembly side2 = new Assembly(side_array, ActiveTransform, null, "Side 2");
+        rubik_array = AppendToArray(rubik_array, side2);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -2.2);
+        Assembly side3 = new Assembly(side_array, ActiveTransform, null, "Side 3");
+        rubik_array = AppendToArray(rubik_array, side3);
+
+        Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
+
+
+        //cube.Assemble(g, IDENTITY);
+        //cube2.Assemble(g, IDENTITY);
+        //cube3.Assemble(g, IDENTITY);
+
+        //row1.Assemble(g, IDENTITY);
+        //row2.Assemble(g, IDENTITY);
+        //row3.Assemble(g, IDENTITY);
+        //side.Assemble(g, IDENTITY);
+
+        rubik.Assemble(g, IDENTITY);
+
+        //copy and tranform into a row
+
+        //copy and transform row into a side
+
+
+        //copy and transform side into cube
+     }
+
+     public static void DrawHallway(Graphics g){
+        //origin
+        Point3D [] tmpPoints = new Point3D [4];
+        tmpPoints[0] = new Point3D(-70.75, 0, 0);
+        tmpPoints[1] = new Point3D(-70.75, 138, 0);
+        tmpPoints[2] = new Point3D(70.75, 138, 0);
+        tmpPoints[3] = new Point3D(70.75, 138, 0);
+
+
+        //Object square = new Object(tmpPoints, IDENTITY, "Square");
+        //Object west_wall = new Object(tmpPoints, IDENTITY, "West Wall");
+        //west_wall.DrawObject(g, IDENTITY);
+
+        //south wall
+        tmpPoints[0].SetCoords(70.75, 0, 0);
+        tmpPoints[1].SetCoords(70.75, 138, 0);
+        tmpPoints[2].SetCoords(70.75, 138, -727.125);
+        tmpPoints[3].SetCoords(70.75, 0, -727.125);
+
+        Object south_wall = new Object(tmpPoints, IDENTITY, "South Wall");
+        south_wall.DrawObject(g, IDENTITY);
+
+        //East wall
+        tmpPoints[0].SetCoords(70.75, 0, -727.125);
+        tmpPoints[1].SetCoords(70.75, 138, -727.125);
+        tmpPoints[2].SetCoords(-70.75, 138, -727.125);
+        tmpPoints[3].SetCoords(-70.75, 0, -727.125);        
+        Object east_wall = new Object(tmpPoints, IDENTITY, "East Wall");
+        east_wall.DrawObject(g, IDENTITY);
+
+
      }
 
 }
