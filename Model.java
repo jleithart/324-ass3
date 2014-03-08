@@ -45,7 +45,7 @@ public class Model extends JComponent
 
         // Draw Square object
         public void DrawObject(Graphics g, double [][] transform){
-            double [][]M = MatrixMultiply(this.aT, transform);
+            double [][]M = MultiplyTransforms(this.aT, transform);
             Move3D(vertices[0], M, CAMERA);
             for(int i = 1; i < this.vertices.length; i++){
                 Draw3D(g, vertices[i], M, CAMERA);
@@ -72,12 +72,12 @@ public class Model extends JComponent
         public void Assemble(Graphics g, double [][]transform){
             //if nil call list of assemblies
             if(drawnObject != null){
-                double [][]M = MatrixMultiply(this.aT, transform);
+                double [][]M = MultiplyTransforms(this.aT, transform);
                 //drawnObject.aT = transform;
                 drawnObject.DrawObject(g, M);
             }
             for(int i = 0; i < this.assemblies.length; i++){
-                double [][]M = MatrixMultiply(this.aT, transform);
+                double [][]M = MultiplyTransforms(this.aT, transform);
                 //PrintMatrix(M);
                 //assemblies[i].aT = M;
                 //assemblies[i].aT = this.aT;
@@ -223,21 +223,25 @@ public class Model extends JComponent
         DefineViewport(0, 0, 1, 1);
 
         //window for the Z graph
-        //DefineWindow(-1.25, -1.25, 1.25, 1.25);
+        //DefineWindow(-3, -3, 3, 3);
 
         //window for the rubik's cube
         //DefineWindow(-15, -15, 15, 15);
 
         //window for the hallway
-        DefineWindow(-80, -80, 150, 150);
+        DefineWindow(-120, 0, 80, 150);
 
-        //the focal point for the graph and rubik's cube
+        //the focal point for the graph
+        //Point3D focalPoint = new Point3D(0, 0, 0);
+        //DefineCameraTransform(focalPoint, 0, 0, 0, 10);
+
+        // focal point for rubik's cube
         //Point3D focalPoint = new Point3D(0, 0, 0);
         //DefineCameraTransform(focalPoint, 30, 45, 0, 10);
 
         // the camera tranform for the hallway
         Point3D focalPoint = new Point3D(0, 0, 0);
-        DefineCameraTransform(focalPoint, 0, 45, 0, 100);
+        DefineCameraTransform(focalPoint, 0, 30, 0, 200);
 
 
 
@@ -247,7 +251,7 @@ public class Model extends JComponent
 
      }
 
-     public static double [][] MatrixMultiply(double[][] M, double[][] N){
+     public static double [][] MultiplyTransforms(double[][] M, double[][] N){
 		assert(M[0].length == N.length);
 		int mColumns = M[0].length;
 		int mRows = M.length;
@@ -392,7 +396,7 @@ public class Model extends JComponent
      			break;
      	}
 
-     	retMatrix = MatrixMultiply(inputMatrix, transMatrix);
+     	retMatrix = MultiplyTransforms(inputMatrix, transMatrix);
      	return retMatrix;
      }
 
@@ -405,7 +409,7 @@ public class Model extends JComponent
 
      	//I want deine elementary transform to return the matrix
      	M = DefineElementaryTransform(transformMatrix, transformCode, transformValue);
-     	//M2 = MatrixMultiply(transformMatrix, M);
+     	//M2 = MultiplyTransforms(transformMatrix, M);
 
      	return M;
 
@@ -427,14 +431,10 @@ public class Model extends JComponent
 
      }
 
-     public static void MultiplyTransforms(){
-
-     }
-
      public static Point3D ApplyTransform(Point3D point, double[][] activeTransform){
      	double [][]vector = { {point.x, point.y, point.z, 1} };
      	double [][]retVector = new double[1][4];
-     	retVector = MatrixMultiply(vector, activeTransform);
+     	retVector = MultiplyTransforms(vector, activeTransform);
 
      	Point3D retPoint = new Point3D(retVector[0][0]/retVector[0][3], retVector[0][1]/retVector[0][3], retVector[0][2]/retVector[0][3]);
 
@@ -512,11 +512,36 @@ public class Model extends JComponent
         g.drawLine(drawFirstPoint.x, drawSecondPoint.y, drawFirstPoint.x, drawFirstPoint.y);
      }
 
+     public static void DrawAxes(Graphics g){
+        //X axis
+        Point3D PointToDraw = new Point3D(2.5, 0, 0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(-2.5, 0, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //y-axis
+        PointToDraw.SetCoords(0, 2.5, 0);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, -2.5, 0);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        //z-axis
+        PointToDraw.SetCoords(0, 0, 10);
+        Move3D(PointToDraw, IDENTITY, CAMERA);
+
+        PointToDraw.SetCoords(0, 0, -10);
+        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+     }
+
      /*
      * Plots the given equation
      */
      public static void PlotGraph(Graphics g){
         //start at the low point
+        DrawAxes(g);
         Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
         Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
         //changed for DEBUGGING FIX LATER
@@ -748,36 +773,86 @@ public class Model extends JComponent
      }
 
      public static void DrawHallway(Graphics g){
+
+        double [][]ActiveTransform = new double[4][4];
+        Assembly []EMPTY = new Assembly[0];
+        Assembly []ceilingAssembly = new Assembly[0];
+        Assembly []doorAssembly = new Assembly[0];
+
         //origin
-        Point3D [] tmpPoints = new Point3D [4];
-        tmpPoints[0] = new Point3D(-70.75, 0, 0);
-        tmpPoints[1] = new Point3D(-70.75, 138, 0);
-        tmpPoints[2] = new Point3D(70.75, 138, 0);
-        tmpPoints[3] = new Point3D(70.75, 138, 0);
+        Point3D [] floorPoints = new Point3D [9];
+        floorPoints[0] = new Point3D(-70.75, 0, 0);
+        floorPoints[1] = new Point3D(70.75, 0, 0);
+        floorPoints[2] = new Point3D(70.75, 0, -727.125);
+        floorPoints[3] = new Point3D(-70.75, 0, -727.125);
+        floorPoints[4] = new Point3D(-70.75, 0, -232.5);
+        floorPoints[5] = new Point3D(-156.5, 0, -232.5);
+        floorPoints[6] = new Point3D(-156.5, 0, -151.5);
+        floorPoints[7] = new Point3D(-70.75, 0, -151.5);
+        floorPoints[8] = new Point3D(-70.75, 0, 0);
+
+        Object floor = new Object(floorPoints, IDENTITY, "Floor");
+        floor.DrawObject(g, IDENTITY);
+        ConnectWalls(g, floor);
+
+        //Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
+        // HEIGHT IS 132
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 132);
+        Assembly ceiling = new Assembly(EMPTY, ActiveTransform, floor, "Ceiling");
+
+        ceiling.Assemble(g, IDENTITY);
+
+        Point3D [] pillarPoints = new Point3D[4];
+        pillarPoints[0] = new Point3D(-70.75, 0, -182.5);
+        pillarPoints[1] = new Point3D(-70.75, 0, -201.5);
+        pillarPoints[2] = new Point3D(-88.75, 0, -201.5);
+        pillarPoints[3] = new Point3D(-88.75, 0, -182.5);
+
+        Object pillar = new Object(pillarPoints, IDENTITY, "Pillar");
+        pillar.DrawObject(g, IDENTITY);
+
+        Assembly pillarAssembly = new Assembly(EMPTY, ActiveTransform, pillar, "Top of Pillar");
+        pillarAssembly.Assemble(g, IDENTITY);
+        ConnectWalls(g, pillar);
+
+        Point3D[] doorPoints = new Point3D[4];
+        doorPoints[0] = new Point3D(0, 0, 0);
+        doorPoints[1] = new Point3D(35.75, 0, 0);
+        doorPoints[2] = new Point3D(35.75, 87, 0);
+        doorPoints[3] = new Point3D(0, 87, 0);
+
+        Object door = new Object(doorPoints, IDENTITY, "Door");
+        //door.DrawObject(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -53.75);
+        Assembly door1 = new Assembly(EMPTY, ActiveTransform, door, "Alves Foss");
+
+        door1.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -251.375);
+        Assembly door2 = new Assembly(EMPTY, ActiveTransform, door, "Terrence Soule");
+
+        door2.Assemble(g, IDENTITY);
 
 
-        //Object square = new Object(tmpPoints, IDENTITY, "Square");
-        //Object west_wall = new Object(tmpPoints, IDENTITY, "West Wall");
-        //west_wall.DrawObject(g, IDENTITY);
-
-        //south wall
-        tmpPoints[0].SetCoords(70.75, 0, 0);
-        tmpPoints[1].SetCoords(70.75, 138, 0);
-        tmpPoints[2].SetCoords(70.75, 138, -727.125);
-        tmpPoints[3].SetCoords(70.75, 0, -727.125);
-
-        Object south_wall = new Object(tmpPoints, IDENTITY, "South Wall");
-        south_wall.DrawObject(g, IDENTITY);
-
-        //East wall
-        tmpPoints[0].SetCoords(70.75, 0, -727.125);
-        tmpPoints[1].SetCoords(70.75, 138, -727.125);
-        tmpPoints[2].SetCoords(-70.75, 138, -727.125);
-        tmpPoints[3].SetCoords(-70.75, 0, -727.125);        
-        Object east_wall = new Object(tmpPoints, IDENTITY, "East Wall");
-        east_wall.DrawObject(g, IDENTITY);
 
 
+
+
+
+     }
+
+     public static void ConnectWalls(Graphics g, Object floorObject){
+        Point3D topPoint = new Point3D(0, 0, 0);
+        for(int i = 0; i < floorObject.vertices.length; i++){
+            Move3D(floorObject.vertices[i], floorObject.aT, CAMERA);
+            topPoint.SetCoords(floorObject.vertices[i].x, 132, floorObject.vertices[i].z);
+            Draw3D(g, topPoint, floorObject.aT, CAMERA);
+        }
      }
 
 }
