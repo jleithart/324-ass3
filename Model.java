@@ -229,7 +229,7 @@ public class Model extends JComponent
         //DefineWindow(-15, -15, 15, 15);
 
         //window for the hallway
-        DefineWindow(-120, 0, 80, 150);
+        DefineWindow(-120, 0, 100, 150);
 
         //the focal point for the graph
         //Point3D focalPoint = new Point3D(0, 0, 0);
@@ -838,10 +838,90 @@ public class Model extends JComponent
 
         door2.Assemble(g, IDENTITY);
 
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -369.375);
+        Assembly door3 = new Assembly(EMPTY, ActiveTransform, door, "Daniel Conte De Leon");
 
+        door3.Assemble(g, IDENTITY);
 
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -568.125);
+        Assembly door4 = new Assembly(EMPTY, ActiveTransform, door, "Greg Donahoe");
 
+        door4.Assemble(g, IDENTITY);
 
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -644.875);
+        Assembly door5 = new Assembly(EMPTY, ActiveTransform, door, "Robert Rinker");
+
+        door5.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 62.25);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -727.125);
+        Assembly door6 = new Assembly(EMPTY, ActiveTransform, door, "East Office Door");
+
+        door6.Assemble(g, IDENTITY);
+
+        Point3D []windowPoints = new Point3D[4];
+        windowPoints[0] = new Point3D(-51.75, 38, -727.125);
+        windowPoints[1] = new Point3D(16.25, 38, -727.125);
+        windowPoints[2] = new Point3D(16.25, 86, -727.125);
+        windowPoints[3] = new Point3D(-51.75, 86, -727.125);
+        Object window = new Object(windowPoints, IDENTITY, "Window");
+
+        window.DrawObject(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -691.375);
+        Assembly door7 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
+
+        door7.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -655.625);
+        Assembly door8 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
+
+        door8.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -474.875);
+        Assembly door9 = new Assembly(EMPTY, ActiveTransform, door, "CS Office");
+
+        door9.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        Assembly door10 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery");
+
+        door10.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -123.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        Assembly door11 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery Side Entrance");
+
+        door11.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -196.75);
+        Assembly door12 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden");
+
+        door12.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -87.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -232.5);
+        Assembly door13 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden Side Entrance");
+
+        door13.Assemble(g, IDENTITY);
 
 
      }
