@@ -205,9 +205,11 @@ public class Model extends JComponent
 
         //PlotGraph(g);
 
-        //DrawRubiksCube(g);
+        //DrawRubiksCube(g, 0.75);
+        //DrawRubiksCube(g, 0);
         //DrawCube(g);
         DrawHallway(g);
+        //DrawName(g);
      }
 
      /*
@@ -222,26 +224,29 @@ public class Model extends JComponent
 
         DefineViewport(0, 0, 1, 1);
 
+        //the focal point for the graph
         //window for the Z graph
         //DefineWindow(-3, -3, 3, 3);
-
-        //window for the rubik's cube
-        //DefineWindow(-15, -15, 15, 15);
-
-        //window for the hallway
-        DefineWindow(-120, 0, 100, 150);
-
-        //the focal point for the graph
         //Point3D focalPoint = new Point3D(0, 0, 0);
-        //DefineCameraTransform(focalPoint, 0, 0, 0, 10);
+        //DefineCameraTransform(focalPoint, 45, 30, 0, 10);
 
         // focal point for rubik's cube
+        //window for the rubik's cube
+        //DefineWindow(-15, -15, 15, 15);
         //Point3D focalPoint = new Point3D(0, 0, 0);
         //DefineCameraTransform(focalPoint, 30, 45, 0, 10);
 
         // the camera tranform for the hallway
+        //window for the hallway
+        DefineWindow(-120, 0, 100, 150);
         Point3D focalPoint = new Point3D(0, 0, 0);
         DefineCameraTransform(focalPoint, 0, 30, 0, 200);
+
+        //the camera transform for the lettering
+        //window for the lettering
+        //DefineWindow(-10, -10, 10, 10);
+        //Point3D focalPoint = new Point3D(1, 0, 1);
+        //DefineCameraTransform(focalPoint, 10, 30, 0, 10);
 
 
 
@@ -544,21 +549,19 @@ public class Model extends JComponent
         DrawAxes(g);
         Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
         Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
-        //changed for DEBUGGING FIX LATER
         double inc = 0.02;
-//        double y = -1.25;
+        g.setColor(Color.red);
         for(double y = -1.25; y <= 1.25; y += inc){
-  //      double y = -1.25;
             firstPoint.SetCoords(y, -1.25, PlotFunction(y, -1.25));
             //Move3D(firstPoint, IDENTITY, CAMERA);
             for(double x = -1.25; x <= 1.25; x+=inc){
-        //double x = -1.25;
                 //draw the small square
                 firstPoint.SetCoords(x, y, 0);
                 secondPoint.SetCoords(x+inc, y+inc, 0);
                 DrawSquare(g, firstPoint, secondPoint);
             }
         }
+        Branding(g, "z = (x^2) + (y^2) - (x^3) - 8*x*(y^4)");
 
 
      }
@@ -658,12 +661,13 @@ public class Model extends JComponent
      * Draws my name, class, date, and assignment #
      * Drawn in Quadrant 1, Top Left corner
      */
-     public static void Branding(Graphics g){
+     public static void Branding(Graphics g, String str){
         g.setColor(Color.black);
-        g.drawString("Jordan Leithart", 5, 10);
-        g.drawString("CS 324", 5, 20);
-        g.drawString("February 14, 2014", 5, 30);
-        g.drawString("Assignment 2", 5, 40);
+        g.drawString("Jordan Leithart", FRAME_WIDTH/2, 20);
+        g.drawString("CS 324", FRAME_WIDTH/2, 35);
+        g.drawString("February 14, 2014", FRAME_WIDTH/2, 50);
+        g.drawString("Assignment 4", FRAME_WIDTH/2, 65);
+        g.drawString(str, FRAME_WIDTH/2, 80);
      }
 
      public static Assembly [] AppendToArray(Assembly []input, Assembly addition){
@@ -675,7 +679,8 @@ public class Model extends JComponent
         return newArray;
      }
 
-     public static void DrawRubiksCube(Graphics g){
+     public static void DrawRubiksCube(Graphics g, double space){
+        double spacing = 2.0 + space;   //size of cube + the space we want
         //draw a square
         Point3D [] tmpPoints = new Point3D [4];
         tmpPoints[0] = new Point3D(-1, -1, 1);
@@ -700,7 +705,6 @@ public class Model extends JComponent
         Assembly bot = new Assembly(EMPTY, ActiveTransform, square, "Bottom");
         cube_array = AppendToArray(cube_array, bot);
 
-        //uses the bottom assembly
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_ROT, 180);
         Assembly back = new Assembly(EMPTY, ActiveTransform, square, "Back");
         cube_array = AppendToArray(cube_array, back);
@@ -720,37 +724,43 @@ public class Model extends JComponent
         Assembly cube = new Assembly(cube_array, IDENTITY, null, "Cube 1");
         row_array = AppendToArray(row_array, cube);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, 2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, spacing);
         Assembly cube2 = new Assembly(cube_array, ActiveTransform, null, "Cube 2");
         row_array = AppendToArray(row_array, cube2);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -spacing);
         Assembly cube3 = new Assembly(cube_array, ActiveTransform, null, "Cube 3");
         row_array = AppendToArray(row_array, cube3);
 
         Assembly row1 = new Assembly(row_array, IDENTITY, null, "Row 1");
         side_array = AppendToArray(side_array, row1);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, spacing);
         Assembly row2 = new Assembly(row_array, ActiveTransform, null, "Row 2");
         side_array = AppendToArray(side_array, row2);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, -2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, -spacing);
         Assembly row3 = new Assembly(row_array, ActiveTransform, null, "Row 3");
         side_array = AppendToArray(side_array, row3);
 
         Assembly side1 = new Assembly(side_array, IDENTITY, null, "Side 1");
         rubik_array = AppendToArray(rubik_array, side1);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, 2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, spacing);
         Assembly side2 = new Assembly(side_array, ActiveTransform, null, "Side 2");
         rubik_array = AppendToArray(rubik_array, side2);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -2.2);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -spacing);
         Assembly side3 = new Assembly(side_array, ActiveTransform, null, "Side 3");
         rubik_array = AppendToArray(rubik_array, side3);
 
-        Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
+        g.setColor(Color.red);
+        side1.Assemble(g, IDENTITY);
+        g.setColor(Color.blue);
+        side2.Assemble(g, IDENTITY);
+        g.setColor(Color.green);
+        side3.Assemble(g, IDENTITY);
+        //Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
 
 
         //cube.Assemble(g, IDENTITY);
@@ -762,7 +772,7 @@ public class Model extends JComponent
         //row3.Assemble(g, IDENTITY);
         //side.Assemble(g, IDENTITY);
 
-        rubik.Assemble(g, IDENTITY);
+        //rubik.Assemble(g, IDENTITY);
 
         //copy and tranform into a row
 
@@ -923,6 +933,33 @@ public class Model extends JComponent
 
         door13.Assemble(g, IDENTITY);
 
+        // boards on the wall
+        Point3D[] boardPoints = new Point3D[4];
+        boardPoints[0] = new Point3D(0, 0, 0);
+        boardPoints[1] = new Point3D(36, 0, 0);
+        boardPoints[2] = new Point3D(36, 24, 0);
+        boardPoints[3] = new Point3D(0, 24, 0);
+
+        Object board = new Object(boardPoints, IDENTITY, "Board");
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -107.75);
+        Assembly board1 = new Assembly(EMPTY, ActiveTransform, board, "Alves Foss Board");
+
+        board1.Assemble(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -107.75);
+        Assembly board2 = new Assembly(EMPTY, ActiveTransform, board, "Alves Foss Board");
+
+        board1.Assemble(g, IDENTITY);
+
+        Branding(g, "Hallway Model");
+
 
      }
 
@@ -932,6 +969,199 @@ public class Model extends JComponent
             Move3D(floorObject.vertices[i], floorObject.aT, CAMERA);
             topPoint.SetCoords(floorObject.vertices[i].x, 132, floorObject.vertices[i].z);
             Draw3D(g, topPoint, floorObject.aT, CAMERA);
+        }
+     }
+
+     public static void DrawName(Graphics g){
+
+        double [][]ActiveTransform = IDENTITY;
+
+        double startSpot = -12;
+        //J
+        Point3D []jpoints = new Point3D[10];
+        jpoints[0] = new Point3D(0, 0, 0);
+        jpoints[1] = new Point3D(3, 0, 0);
+        jpoints[2] = new Point3D(3, -1, 0);
+        jpoints[3] = new Point3D(2, -1, 0);
+        jpoints[4] = new Point3D(2, -5, 0);
+        jpoints[5] = new Point3D(0, -5, 0);
+        jpoints[6] = new Point3D(0, -4, 0);
+        jpoints[7] = new Point3D(1, -4, 0);
+        jpoints[8] = new Point3D(1, -1, 0);
+        jpoints[9] = new Point3D(0, -1, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot);
+        Object J = new Object(jpoints, ActiveTransform, "J letter");
+        
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object J_Back = new Object(jpoints, ActiveTransform, "J back");
+        J.DrawObject(g, IDENTITY);
+        J_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, J);
+
+        //O
+        Point3D []opoints_outer = new Point3D[4];
+        opoints_outer[0] = new Point3D(0, 0, 0);
+        opoints_outer[1] = new Point3D(3, 0, 0);
+        opoints_outer[2] = new Point3D(3, -3, 0);
+        opoints_outer[3] = new Point3D(0, -3, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot + 4);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, -2);
+        Object O1 = new Object(opoints_outer, ActiveTransform, "O Letter");
+
+        Point3D []opoints_inner = new Point3D[4];
+        opoints_inner[0] = new Point3D(1, -1, 0);
+        opoints_inner[1] = new Point3D(2, -1, 0);
+        opoints_inner[2] = new Point3D(2, -2, 0);
+        opoints_inner[3] = new Point3D(1, -2, 0);
+
+        Object O2 = new Object(opoints_inner, ActiveTransform, "inside o letter");
+
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object O1_Back = new Object(opoints_outer, ActiveTransform, "O letter back");
+        Object O2_Back = new Object(opoints_inner, ActiveTransform, "Inside o back");
+
+        O1.DrawObject(g, IDENTITY);
+        O2.DrawObject(g, IDENTITY);
+        O1_Back.DrawObject(g, IDENTITY);
+        O2_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, O1);
+        ConnectLetters(g, O2);
+
+        //R
+        Point3D []rpoints_outer = new Point3D[9];
+        rpoints_outer[0] = new Point3D(0, 0, 0);
+        rpoints_outer[1] = new Point3D(3, 0, 0);
+        rpoints_outer[2] = new Point3D(3, -1, 0);
+        rpoints_outer[3] = new Point3D(2, -1, 0);
+        rpoints_outer[4] = new Point3D(3, -2.5, 0);
+        rpoints_outer[5] = new Point3D(2.5, -3, 0);
+        rpoints_outer[6] = new Point3D(1, -1.5, 0);
+        rpoints_outer[7] = new Point3D(1, -3, 0);
+        rpoints_outer[8] = new Point3D(0, -3, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot + 8);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, -2);
+        Object R1 = new Object(rpoints_outer, ActiveTransform, "R outside");
+
+        Point3D []rpoints_inner = new Point3D[4];
+        rpoints_inner[0] = new Point3D(1, -0.5, 0);
+        rpoints_inner[1] = new Point3D(2, -0.5, 0);
+        rpoints_inner[2] = new Point3D(2, -0.75, 0);
+        rpoints_inner[3] = new Point3D(1, -0.75, 0);
+
+        Object R2 = new Object(rpoints_inner, ActiveTransform, "R inside");
+
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object R1_Back = new Object(rpoints_outer, ActiveTransform, "R back outside");
+        Object R2_Back = new Object(rpoints_inner, ActiveTransform, "R back inside");
+
+        R1.DrawObject(g, IDENTITY);
+        R2.DrawObject(g, IDENTITY);
+        R1_Back.DrawObject(g, IDENTITY);
+        R2_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, R1);
+        ConnectLetters(g, R2);
+
+
+        //D
+        Point3D []dpoints_outer = new Point3D[5];
+        dpoints_outer[0] = new Point3D(0, 0, 0);
+        dpoints_outer[1] = new Point3D(2, 0, 0);
+        dpoints_outer[2] = new Point3D(3, -1.5, 0);
+        dpoints_outer[3] = new Point3D(2, -3, 0);
+        dpoints_outer[4] = new Point3D(0, -3, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot + 12);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, -2);
+        Object D1 = new Object(dpoints_outer, ActiveTransform, "D Outside");
+
+        Point3D []dpoints_inner = new Point3D[4];
+        dpoints_inner[0] = new Point3D(0.75, -1, 0);
+        dpoints_inner[1] = new Point3D(1.5, -1, 0);
+        dpoints_inner[2] = new Point3D(1.5, -2, 0);
+        dpoints_inner[3] = new Point3D(0.75, -2, 0);
+
+        Object D2 = new Object(dpoints_inner, ActiveTransform, "D inside");
+
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object D1_Back = new Object(dpoints_outer, ActiveTransform, "D Outside Back");
+        Object D2_Back = new Object(dpoints_inner, ActiveTransform, "D Inside Back");
+
+        D1.DrawObject(g, IDENTITY);
+        D2.DrawObject(g, IDENTITY);
+        D1_Back.DrawObject(g, IDENTITY);
+        D2_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, D1);
+        ConnectLetters(g, D2);
+
+        //A
+        Point3D []apoints_outer = new Point3D[8];
+        apoints_outer[0] = new Point3D(1, 0, 0);
+        apoints_outer[1] = new Point3D(2, 0, 0);
+        apoints_outer[2] = new Point3D(3, -3, 0);
+        apoints_outer[3] = new Point3D(2, -3, 0);
+        apoints_outer[4] = new Point3D(1.75, -2, 0);
+        apoints_outer[5] = new Point3D(1.25, -2, 0);
+        apoints_outer[6] = new Point3D(1, -3, 0);
+        apoints_outer[7] = new Point3D(0, -3, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot + 15);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, -2);
+        Object A1 = new Object(apoints_outer, ActiveTransform, "A outside");
+
+        Point3D []apoints_inner = new Point3D[3];
+        apoints_inner[0] = new Point3D(1.5, -1, 0);
+        apoints_inner[1] = new Point3D(1.75, -1.5, 0);
+        apoints_inner[2] = new Point3D(1.25, -1.5, 0);
+        Object A2 = new Object(apoints_inner, ActiveTransform, "A inside");
+
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object A1_Back = new Object(apoints_outer, ActiveTransform, "A outside back");
+        Object A2_Back = new Object(apoints_inner, ActiveTransform, "A inside back");
+
+        A1.DrawObject(g, IDENTITY);
+        A2.DrawObject(g, IDENTITY);
+        A1_Back.DrawObject(g, IDENTITY);
+        A2_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, A1);
+        ConnectLetters(g, A2);
+
+        //N
+        Point3D []npoints = new Point3D[10];
+        npoints[0] = new Point3D(0, 0, 0);
+        npoints[1] = new Point3D(1, 0, 0);
+        npoints[2] = new Point3D(2, -2, 0);
+        npoints[3] = new Point3D(2, 0, 0);
+        npoints[4] = new Point3D(3, 0, 0);
+        npoints[5] = new Point3D(3, -3, 0);
+        npoints[6] = new Point3D(2, -3, 0);
+        npoints[7] = new Point3D(1, -1, 0);
+        npoints[8] = new Point3D(1, -3, 0);
+        npoints[9] = new Point3D(0, -3, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, startSpot + 18.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, -2);
+        Object N = new Object(npoints, ActiveTransform, "N Letter");
+
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -1);
+        Object N_Back = new Object(npoints, ActiveTransform, "N Letter Back");
+
+        N.DrawObject(g, IDENTITY);
+        N_Back.DrawObject(g, IDENTITY);
+        ConnectLetters(g, N);
+
+        Branding(g, "3D Letters");
+
+     }
+
+     public static void ConnectLetters(Graphics g, Object letter){
+        Point3D topPoint = new Point3D(0, 0, 0);
+        for(int i = 0; i < letter.vertices.length; i++){
+            Move3D(letter.vertices[i], letter.aT, CAMERA);
+            topPoint.SetCoords(letter.vertices[i].x, letter.vertices[i].y, -1);
+            Draw3D(g, topPoint, letter.aT, CAMERA);
         }
      }
 
