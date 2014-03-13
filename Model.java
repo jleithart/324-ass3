@@ -1,9 +1,10 @@
 //modeler
 
 /*  Model.java
-  * Programming assignment #2
+  * Programming assignment #4
   * CS 324 Bruce Bolden
-  * Due February 14, 2014
+  * Due March 14, 2014
+  * MODELER
   */
 
 import java.awt.*;
@@ -57,9 +58,9 @@ public class Model extends JComponent
 
     private static class Assembly{
         public String name;
-        public double [][]aT;
-        public Assembly []assemblies;
-        public Object drawnObject;
+        public double [][]aT;           //the active transform
+        public Assembly []assemblies;   //list of assemblies
+        public Object drawnObject;      //the object to draw
 
         private Assembly(Assembly []in_assem, double [][]transform, Object inputObject, String name){
             this.name = name;
@@ -73,14 +74,11 @@ public class Model extends JComponent
             //if nil call list of assemblies
             if(drawnObject != null){
                 double [][]M = MultiplyTransforms(this.aT, transform);
-                //drawnObject.aT = transform;
                 drawnObject.DrawObject(g, M);
             }
+            //else draw the sub assemblies
             for(int i = 0; i < this.assemblies.length; i++){
                 double [][]M = MultiplyTransforms(this.aT, transform);
-                //PrintMatrix(M);
-                //assemblies[i].aT = M;
-                //assemblies[i].aT = this.aT;
                 assemblies[i].Assemble(g, M);
             }
         }
@@ -154,6 +152,7 @@ public class Model extends JComponent
         }
     }
 
+    // the 3D point class struct
     private static class Point3D
     {
     	public double x;
@@ -201,15 +200,16 @@ public class Model extends JComponent
         FRAME_HEIGHT = getHeight();
         FRAME_WIDTH = getWidth();
 
-        ShowViewport(g);
+        
 
         //PlotGraph(g);
-
         //DrawRubiksCube(g, 0.75);
         //DrawRubiksCube(g, 0);
         //DrawCube(g);
-        DrawHallway(g);
-        //DrawName(g);
+        //DrawHallway(g);
+        DrawName(g);
+
+        ShowViewport(g);
      }
 
      /*
@@ -223,39 +223,45 @@ public class Model extends JComponent
         f.setVisible( true );
 
         DefineViewport(0, 0, 1, 1);
-
-        //the focal point for the graph
+        
+        /*
+        //the camera transform for the graph
         //window for the Z graph
-        //DefineWindow(-3, -3, 3, 3);
-        //Point3D focalPoint = new Point3D(0, 0, 0);
-        //DefineCameraTransform(focalPoint, 45, 30, 0, 10);
+        DefineWindow(-3, -3, 3, 3);
+        Point3D focalPoint = new Point3D(0, 0, 0);
+        DefineCameraTransform(focalPoint, 45, 30, 0, 40);
+        */
 
-        // focal point for rubik's cube
+        /*
+        //the camera transform for the rubik's cube
         //window for the rubik's cube
-        //DefineWindow(-15, -15, 15, 15);
-        //Point3D focalPoint = new Point3D(0, 0, 0);
-        //DefineCameraTransform(focalPoint, 30, 45, 0, 10);
-
-        // the camera tranform for the hallway
+        DefineWindow(-15, -15, 15, 15);
+        Point3D focalPoint = new Point3D(0, 0, 0);
+        DefineCameraTransform(focalPoint, 30, 45, 0, 10);
+        */
+        
+        /*
+        //the camera transform for the hallway
         //window for the hallway
         DefineWindow(-120, 0, 100, 150);
         Point3D focalPoint = new Point3D(0, 0, 0);
         DefineCameraTransform(focalPoint, 0, 30, 0, 200);
+        */
 
+        /*
         //the camera transform for the lettering
         //window for the lettering
-        //DefineWindow(-10, -10, 10, 10);
-        //Point3D focalPoint = new Point3D(1, 0, 1);
-        //DefineCameraTransform(focalPoint, 10, 30, 0, 10);
-
-
-
-        // set the values of each viewport
-        //SetViewport();
-        //SetWindow();
+        DefineWindow(-10, -10, 10, 10);
+        Point3D focalPoint = new Point3D(1, 0, 1);
+        DefineCameraTransform(focalPoint, 10, 30, 0, 10);
+        */
 
      }
 
+     /*
+     *  Takes in two matrices/transforms
+     *  Outputs the multiplied matrix
+     */
      public static double [][] MultiplyTransforms(double[][] M, double[][] N){
 		assert(M[0].length == N.length);
 		int mColumns = M[0].length;
@@ -284,6 +290,9 @@ public class Model extends JComponent
 		return retval;
 	}
 
+    /*
+    *   Takes in a matrix to format and print
+    */
     public static void PrintMatrix(double [][] M){
         for(int i = 0; i < M.length; i++){
             System.out.print("|");
@@ -310,7 +319,12 @@ public class Model extends JComponent
      	curVP.TopY = TY;
      }
 
-     public static Point2D WindowToViewPort(Point3D point){
+     /*
+     *  Uses linear interpolation to translate a 3D Window Point
+     *  Into a 2D Viewport point
+     */
+     public static Point2D WindowToViewPort(Point3D point)
+     {
      	Point2D tmpCoordinate = new Point2D(0, 0);
 
      	tmpCoordinate.x = LinearInterpolation(curVP.LeftX, curVP.RightX, curWin.LeftX, curWin.RightX, point.x);
@@ -331,7 +345,16 @@ public class Model extends JComponent
      	return tmpCoordinate;
      }
 
-     public static void Move3D(Point3D inputPoint, double[][] activeTransform, double[][] cameraTransform){
+     /*
+     *  Takes in a 3D window point 
+     *  applies the active transform 
+     *  applies camera transform to the point
+     *  changes cur position to the new input point
+     */
+     public static void Move3D(Point3D inputPoint, 
+                                double[][] activeTransform, 
+                                double[][] cameraTransform)
+     {
      	Point3D activePoint = ApplyTransform(inputPoint, activeTransform);
      	Point3D cameraPoint = ApplyTransform(activePoint, cameraTransform);
 
@@ -340,9 +363,17 @@ public class Model extends JComponent
      	MoveTo2D(pointToMove);
      }
 
-     //I think for this aassignment activeTransform needs to be identity matrix
+     /*
+     *  Takes in a 3D window point
+     *  applies the active transform 
+     *  applies camera transform to the point
+     *  Draws a line from the current position to the new point
+     */
 
-     public static void Draw3D(Graphics g, Point3D inputPoint, double [][]activeTransform, double [][] cameraTransform){
+     public static void Draw3D(Graphics g, Point3D inputPoint, 
+                                double [][] activeTransform, 
+                                double [][] cameraTransform)
+     {
      	Point3D activePoint = ApplyTransform(inputPoint, activeTransform);
      	Point3D cameraPoint = ApplyTransform(activePoint, cameraTransform);
 
@@ -350,11 +381,15 @@ public class Model extends JComponent
 
      	DrawTo2D(g, pointToDraw);
      	Move3D(inputPoint, activeTransform, cameraTransform);
-
      }
 
-     public static double[][] DefineElementaryTransform(double [][] inputMatrix, TRANSFORM_CODE transformCode, 
-     											double transformValue)
+     /*
+     *  Defines a simple transformation matrix
+     *  Outputs the transformation matrix
+     */
+     public static double[][] DefineElementaryTransform(double [][] inputMatrix, 
+                                                        TRANSFORM_CODE transformCode, 
+     											        double transformValue)
      {
      	double [][]transMatrix = { 	{1, 0, 0, 0},
      						  		{0, 1, 0, 0},
@@ -362,7 +397,7 @@ public class Model extends JComponent
      						  		{0, 0, 0, 1}
      							};
      	double [][]retMatrix = new double[4][4];
-     	double radianVal = 3.14159*transformValue/180;
+     	double radianVal = Math.PI*transformValue/180;
 
      	switch(transformCode){
      		case X_TRANS:
@@ -405,21 +440,23 @@ public class Model extends JComponent
      	return retMatrix;
      }
 
+     /*
+     *  Builds upon an elementary transform matrix
+     */
      public static double[][] BuildElementaryTransform(double [][]transformMatrix,
      											TRANSFORM_CODE transformCode,
      											double transformValue)
      {
      	double [][]M = new double[4][4];
-     	//double M2 = new double[4][4];
-
-     	//I want deine elementary transform to return the matrix
      	M = DefineElementaryTransform(transformMatrix, transformCode, transformValue);
-     	//M2 = MultiplyTransforms(transformMatrix, M);
 
      	return M;
 
      }
 
+     /*
+     *  Sets the global camera transform
+     */
      public static void DefineCameraTransform(Point3D focalPoint, 
      											double theta, double phi, double alpha, 
      											double r)
@@ -436,12 +473,17 @@ public class Model extends JComponent
 
      }
 
+     /*
+     *  Takes in a point and applies the active transform to it
+     */
      public static Point3D ApplyTransform(Point3D point, double[][] activeTransform){
      	double [][]vector = { {point.x, point.y, point.z, 1} };
      	double [][]retVector = new double[1][4];
      	retVector = MultiplyTransforms(vector, activeTransform);
 
-     	Point3D retPoint = new Point3D(retVector[0][0]/retVector[0][3], retVector[0][1]/retVector[0][3], retVector[0][2]/retVector[0][3]);
+     	Point3D retPoint = new Point3D(retVector[0][0]/retVector[0][3], 
+                                        retVector[0][1]/retVector[0][3], 
+                                        retVector[0][2]/retVector[0][3]);
 
      	return retPoint;
      }
@@ -461,7 +503,7 @@ public class Model extends JComponent
      */
      public static void DrawTo2D(Graphics g, Point2D inputPoint){
 
-        Point2D firstPoint = curPos;	//this might need to go through the window to viewport transition
+        Point2D firstPoint = curPos;
         Point2D secondPoint = inputPoint;
 
         //now draw it
@@ -486,11 +528,8 @@ public class Model extends JComponent
 
         // given a viewport coordinate, find the pixel placement
         //user linear interpolation:
-        // x = x(0) + x1 - x0(y-y0/y1-y0)
         tmpCoordinate.x = (int) LinearInterpolation(0 + 5, FRAME_WIDTH - 5, curVP.LeftX, curVP.RightX, coordinate.x);
         tmpCoordinate.y = (int) LinearInterpolation(FRAME_HEIGHT - 5, 0 + 5, curVP.BotY, curVP.TopY, coordinate.y);
-        
-
         
         return tmpCoordinate;
      }
@@ -498,8 +537,6 @@ public class Model extends JComponent
      /*
      * Draws a rectangle around each viewport
      */
-
-     // TODO REWORK
      public static void ShowViewport(Graphics g){
         //draws the viewports
         drawPoint drawFirstPoint;
@@ -517,27 +554,63 @@ public class Model extends JComponent
         g.drawLine(drawFirstPoint.x, drawSecondPoint.y, drawFirstPoint.x, drawFirstPoint.y);
      }
 
+     /*
+     *  Draws and labels the axes
+     */
      public static void DrawAxes(Graphics g){
+        String num = "";
+        Point2D tmpPoint = new Point2D(0, 0);
+        drawPoint drawer = new drawPoint(0, 0);
         //X axis
-        Point3D PointToDraw = new Point3D(2.5, 0, 0);
+        Point3D PointToDraw = new Point3D(curWin.RightX, 0, 0);
         Move3D(PointToDraw, IDENTITY, CAMERA);
 
-        PointToDraw.SetCoords(-2.5, 0, 0);
+        PointToDraw.SetCoords(curWin.LeftX, 0, 0);
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        for(double i = curWin.LeftX; i <= curWin.RightX; i += 0.5){
+            if(i == 0.0) continue;
+            PointToDraw.SetCoords(i, 0, 0);
+
+            num = "" + i;
+            Move3D(PointToDraw, IDENTITY, CAMERA);
+            drawer = ViewPortToFrameWindow(curPos);
+            g.drawString(num, drawer.x, drawer.y);
+        }
 
         //y-axis
-        PointToDraw.SetCoords(0, 2.5, 0);
+        PointToDraw.SetCoords(0, curWin.TopY - 1, 0);
         Move3D(PointToDraw, IDENTITY, CAMERA);
 
-        PointToDraw.SetCoords(0, -2.5, 0);
+        PointToDraw.SetCoords(0, curWin.BotY, 0);
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        for(double i = curWin.BotY; i <= curWin.TopY - 1; i += 0.5){
+            if(i == 0.0) continue;
+            PointToDraw.SetCoords(0.1, i, 0);
+
+            num = "" + i;
+            Move3D(PointToDraw, IDENTITY, CAMERA);
+            drawer = ViewPortToFrameWindow(curPos);
+            g.drawString(num, drawer.x, drawer.y);
+        }
 
         //z-axis
-        PointToDraw.SetCoords(0, 0, 10);
+        PointToDraw.SetCoords(0, 0, 4); //4 is to keep it on the screen
         Move3D(PointToDraw, IDENTITY, CAMERA);
 
-        PointToDraw.SetCoords(0, 0, -10);
+        PointToDraw.SetCoords(0, 0, -4); // keep it on the screen
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
+
+        for(double i = -4.0; i <= 4.0; i += 0.5){
+            if(i == 0.0) continue;
+            PointToDraw.SetCoords(0, 0.1, i);
+
+            num = "" + i;
+            Move3D(PointToDraw, IDENTITY, CAMERA);
+            drawer = ViewPortToFrameWindow(curPos);
+            g.drawString(num, drawer.x, drawer.y);
+        }
 
      }
 
@@ -546,14 +619,11 @@ public class Model extends JComponent
      */
      public static void PlotGraph(Graphics g){
         //start at the low point
-        DrawAxes(g);
         Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
         Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
-        double inc = 0.02;
-        g.setColor(Color.red);
+        double inc = 0.05;  //this looked the best
+        g.setColor(Color.blue);
         for(double y = -1.25; y <= 1.25; y += inc){
-            firstPoint.SetCoords(y, -1.25, PlotFunction(y, -1.25));
-            //Move3D(firstPoint, IDENTITY, CAMERA);
             for(double x = -1.25; x <= 1.25; x+=inc){
                 //draw the small square
                 firstPoint.SetCoords(x, y, 0);
@@ -561,32 +631,48 @@ public class Model extends JComponent
                 DrawSquare(g, firstPoint, secondPoint);
             }
         }
+
+        g.setColor(Color.black);
+        DrawAxes(g);
         Branding(g, "z = (x^2) + (y^2) - (x^3) - 8*x*(y^4)");
 
 
      }
 
      /*
-     *
+     *  draws a square for the graph
      */
-     public static void DrawSquare(Graphics g, Point3D leftPoint, Point3D rightPoint){
-        Point3D PointToDraw = new Point3D(leftPoint.x, leftPoint.y, PlotFunction(leftPoint.x, leftPoint.y));
+     public static void DrawSquare(Graphics g, 
+                                    Point3D leftPoint, 
+                                    Point3D rightPoint)
+     {
+        Point3D PointToDraw = new Point3D(leftPoint.x, 
+                                            leftPoint.y, 
+                                            PlotFunction(leftPoint.x, leftPoint.y));
         Move3D(PointToDraw, IDENTITY, CAMERA);
 
         //leftX -> rightX
-        PointToDraw.SetCoords(rightPoint.x, leftPoint.y, PlotFunction(rightPoint.x, leftPoint.y));
+        PointToDraw.SetCoords(rightPoint.x, 
+                                leftPoint.y, 
+                                PlotFunction(rightPoint.x, leftPoint.y));
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
 
         //botY -> topY
-        PointToDraw.SetCoords(rightPoint.x, rightPoint.y, PlotFunction(rightPoint.x, rightPoint.y));
+        PointToDraw.SetCoords(rightPoint.x, 
+                                rightPoint.y, 
+                                PlotFunction(rightPoint.x, rightPoint.y));
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
 
         //rightX -> leftX
-        PointToDraw.SetCoords(leftPoint.x, rightPoint.y, PlotFunction(leftPoint.x, rightPoint.y));
+        PointToDraw.SetCoords(leftPoint.x, 
+                                rightPoint.y, 
+                                PlotFunction(leftPoint.x, rightPoint.y));
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
 
         //topY -> botY
-        PointToDraw.SetCoords(leftPoint.x, leftPoint.y, PlotFunction(leftPoint.x, leftPoint.y));
+        PointToDraw.SetCoords(leftPoint.x, 
+                                leftPoint.y, 
+                                PlotFunction(leftPoint.x, leftPoint.y));
         Draw3D(g, PointToDraw, IDENTITY, CAMERA);
      }
 
@@ -598,65 +684,7 @@ public class Model extends JComponent
         z = x*x + y*y - (x*x*x) - 8*x*y*y*y*y;
         return z;
      }
-
-     /*
-     *
-     */
-     public static void DrawCube(Graphics g){
-        Point3D PointToDraw = new Point3D(1.0, 0, 1.0);
-        Move3D(PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 1.0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 1.0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        //RIGHT SQUARE
-        PointToDraw.SetCoords(1.0, 0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 1.0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 1.0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        //LEFT SQUARE
-        PointToDraw.SetCoords(0, 0, 1.0);
-        Move3D(PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 1.0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 1.0, 1.0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        // BACK SQUARE
-        PointToDraw.SetCoords(0, 0, 0);
-        Move3D(PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(1.0, 1.0, 0);
-        Move3D(PointToDraw, IDENTITY, CAMERA);
-
-        PointToDraw.SetCoords(0, 1.0, 0);
-        Draw3D(g, PointToDraw, IDENTITY, CAMERA);
-
-
-     }
-
+     
      /*
      * Draws my name, class, date, and assignment #
      * Drawn in Quadrant 1, Top Left corner
@@ -665,12 +693,17 @@ public class Model extends JComponent
         g.setColor(Color.black);
         g.drawString("Jordan Leithart", FRAME_WIDTH/2, 20);
         g.drawString("CS 324", FRAME_WIDTH/2, 35);
-        g.drawString("February 14, 2014", FRAME_WIDTH/2, 50);
+        g.drawString("March 14, 2014", FRAME_WIDTH/2, 50);
         g.drawString("Assignment 4", FRAME_WIDTH/2, 65);
         g.drawString(str, FRAME_WIDTH/2, 80);
      }
 
-     public static Assembly [] AppendToArray(Assembly []input, Assembly addition){
+     /*
+     *  Appends an assembly to a passed in assembly array
+     */
+     public static Assembly [] AppendToArray(Assembly []input, 
+                                             Assembly addition)
+     {
         Assembly []newArray = new Assembly[input.length + 1];
         for(int i = 0; i < input.length; i++){
             newArray[i] = input[i];
@@ -679,6 +712,10 @@ public class Model extends JComponent
         return newArray;
      }
 
+     /*
+     *  Procedurally draws the rubik's cube
+     *  The spacing between the cubes is passed in
+     */
      public static void DrawRubiksCube(Graphics g, double space){
         double spacing = 2.0 + space;   //size of cube + the space we want
         //draw a square
@@ -697,7 +734,9 @@ public class Model extends JComponent
         Assembly []side_array = new Assembly[0];
         Assembly []rubik_array = new Assembly[0];
 
-//        square.DrawObject(g);
+        /*
+        *   START CUBE ARRAY ASSEMBLY
+        */
         Assembly front = new Assembly(EMPTY, IDENTITY, square, "Front");
         cube_array = AppendToArray(cube_array, front);
 
@@ -721,6 +760,13 @@ public class Model extends JComponent
         Assembly right = new Assembly(EMPTY, ActiveTransform, square, "Right");
         cube_array = AppendToArray(cube_array, right);
 
+        /*
+        *   END CUBE ASSEMBLY
+        */
+
+        /*
+        *   BEGIN ROW ARRAY ASSEMBLY
+        */
         Assembly cube = new Assembly(cube_array, IDENTITY, null, "Cube 1");
         row_array = AppendToArray(row_array, cube);
 
@@ -731,7 +777,13 @@ public class Model extends JComponent
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -spacing);
         Assembly cube3 = new Assembly(cube_array, ActiveTransform, null, "Cube 3");
         row_array = AppendToArray(row_array, cube3);
+        /*
+        *   END ROW ASSEMBLY
+        */
 
+        /* 
+        *   BEGIN SIDE ARRAY ASSEMBLY 
+        */
         Assembly row1 = new Assembly(row_array, IDENTITY, null, "Row 1");
         side_array = AppendToArray(side_array, row1);
 
@@ -743,16 +795,17 @@ public class Model extends JComponent
         Assembly row3 = new Assembly(row_array, ActiveTransform, null, "Row 3");
         side_array = AppendToArray(side_array, row3);
 
+        /*
+        *   END SIDE ASSEMBLY
+        */
+
         Assembly side1 = new Assembly(side_array, IDENTITY, null, "Side 1");
-        rubik_array = AppendToArray(rubik_array, side1);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, spacing);
         Assembly side2 = new Assembly(side_array, ActiveTransform, null, "Side 2");
-        rubik_array = AppendToArray(rubik_array, side2);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -spacing);
         Assembly side3 = new Assembly(side_array, ActiveTransform, null, "Side 3");
-        rubik_array = AppendToArray(rubik_array, side3);
 
         g.setColor(Color.red);
         side1.Assemble(g, IDENTITY);
@@ -760,28 +813,13 @@ public class Model extends JComponent
         side2.Assemble(g, IDENTITY);
         g.setColor(Color.green);
         side3.Assemble(g, IDENTITY);
-        //Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
 
-
-        //cube.Assemble(g, IDENTITY);
-        //cube2.Assemble(g, IDENTITY);
-        //cube3.Assemble(g, IDENTITY);
-
-        //row1.Assemble(g, IDENTITY);
-        //row2.Assemble(g, IDENTITY);
-        //row3.Assemble(g, IDENTITY);
-        //side.Assemble(g, IDENTITY);
-
-        //rubik.Assemble(g, IDENTITY);
-
-        //copy and tranform into a row
-
-        //copy and transform row into a side
-
-
-        //copy and transform side into cube
      }
 
+     /*
+     *  Draw the CSAC hallway
+     *  This is done using the data collected on March 7
+     */
      public static void DrawHallway(Graphics g){
 
         double [][]ActiveTransform = new double[4][4];
@@ -805,8 +843,6 @@ public class Model extends JComponent
         floor.DrawObject(g, IDENTITY);
         ConnectWalls(g, floor);
 
-        //Assembly rubik = new Assembly(rubik_array, IDENTITY, null, "Rubik's Cube");
-        // HEIGHT IS 132
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 132);
         Assembly ceiling = new Assembly(EMPTY, ActiveTransform, floor, "Ceiling");
 
@@ -832,7 +868,6 @@ public class Model extends JComponent
         doorPoints[3] = new Point3D(0, 87, 0);
 
         Object door = new Object(doorPoints, IDENTITY, "Door");
-        //door.DrawObject(g, IDENTITY);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
@@ -963,6 +998,9 @@ public class Model extends JComponent
 
      }
 
+     /*
+     *  Connects the floor object to the ceiling by attaching all vertices
+     */
      public static void ConnectWalls(Graphics g, Object floorObject){
         Point3D topPoint = new Point3D(0, 0, 0);
         for(int i = 0; i < floorObject.vertices.length; i++){
@@ -972,6 +1010,9 @@ public class Model extends JComponent
         }
      }
 
+     /*
+     *  Draws Jordan in 3D letters
+     */
      public static void DrawName(Graphics g){
 
         double [][]ActiveTransform = IDENTITY;
@@ -1156,6 +1197,9 @@ public class Model extends JComponent
 
      }
 
+     /*
+     *  Connects the letters by going along the Z axis
+     */
      public static void ConnectLetters(Graphics g, Object letter){
         Point3D topPoint = new Point3D(0, 0, 0);
         for(int i = 0; i < letter.vertices.length; i++){
