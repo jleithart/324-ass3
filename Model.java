@@ -202,9 +202,9 @@ public class Model extends JComponent
 
         //PlotGraph(g);
         //DrawRubiksCube(g, 0.75);
-        //DrawRubiksCube(g, 0);
+        DrawRubiksCube(g, 0);
         //DrawHallway(g);
-        DrawName(g);
+        //DrawName(g);
 
         ShowViewport(g);
      }
@@ -229,13 +229,13 @@ public class Model extends JComponent
         DefineCameraTransform(focalPoint, 45, 30, 0, 40);
         */
 
-        /*
+        
         //the camera transform for the rubik's cube
         //window for the rubik's cube
         DefineWindow(-15, -15, 15, 15);
         Point3D focalPoint = new Point3D(0, 0, 0);
-        DefineCameraTransform(focalPoint, 30, 45, 0, 10);
-        */
+        DefineCameraTransform(focalPoint, 45, 30, 0, 10);
+        
         
         
         /*
@@ -247,13 +247,13 @@ public class Model extends JComponent
         */
         
 
-        
+        /*
         //the camera transform for the lettering
         //window for the lettering
         DefineWindow(-10, -10, 10, 10);
         Point3D focalPoint = new Point3D(1, 0, 1);
         DefineCameraTransform(focalPoint, 10, 30, 0, 10);
-        
+        */
 
      }
 
@@ -767,11 +767,11 @@ public class Model extends JComponent
         Assembly cube = new Assembly(cube_array, IDENTITY, null, "Cube 1");
         row_array = AppendToArray(row_array, cube);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, spacing);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, spacing);
         Assembly cube2 = new Assembly(cube_array, ActiveTransform, null, "Cube 2");
         row_array = AppendToArray(row_array, cube2);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -spacing);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -spacing);
         Assembly cube3 = new Assembly(cube_array, ActiveTransform, null, "Cube 3");
         row_array = AppendToArray(row_array, cube3);
         /*
@@ -798,10 +798,10 @@ public class Model extends JComponent
 
         Assembly side1 = new Assembly(side_array, IDENTITY, null, "Side 1");
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, spacing);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, spacing);
         Assembly side2 = new Assembly(side_array, ActiveTransform, null, "Side 2");
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -spacing);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -spacing);
         Assembly side3 = new Assembly(side_array, ActiveTransform, null, "Side 3");
 
         // Color requirements meant this had to be done separately
