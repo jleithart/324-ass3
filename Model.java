@@ -200,12 +200,9 @@ public class Model extends JComponent
         FRAME_HEIGHT = getHeight();
         FRAME_WIDTH = getWidth();
 
-        
-
         //PlotGraph(g);
         //DrawRubiksCube(g, 0.75);
         //DrawRubiksCube(g, 0);
-        //DrawCube(g);
         //DrawHallway(g);
         DrawName(g);
 
@@ -240,6 +237,7 @@ public class Model extends JComponent
         DefineCameraTransform(focalPoint, 30, 45, 0, 10);
         */
         
+        
         /*
         //the camera transform for the hallway
         //window for the hallway
@@ -247,14 +245,15 @@ public class Model extends JComponent
         Point3D focalPoint = new Point3D(0, 0, 0);
         DefineCameraTransform(focalPoint, 0, 30, 0, 200);
         */
+        
 
-        /*
+        
         //the camera transform for the lettering
         //window for the lettering
         DefineWindow(-10, -10, 10, 10);
         Point3D focalPoint = new Point3D(1, 0, 1);
         DefineCameraTransform(focalPoint, 10, 30, 0, 10);
-        */
+        
 
      }
 
@@ -369,7 +368,6 @@ public class Model extends JComponent
      *  applies camera transform to the point
      *  Draws a line from the current position to the new point
      */
-
      public static void Draw3D(Graphics g, Point3D inputPoint, 
                                 double [][] activeTransform, 
                                 double [][] cameraTransform)
@@ -538,6 +536,7 @@ public class Model extends JComponent
      * Draws a rectangle around each viewport
      */
      public static void ShowViewport(Graphics g){
+        g.setColor(Color.black);
         //draws the viewports
         drawPoint drawFirstPoint;
         drawPoint drawSecondPoint;
@@ -622,7 +621,7 @@ public class Model extends JComponent
         Point3D firstPoint = new Point3D(-1.25, -1.25, 0);
         Point3D secondPoint = new Point3D(-1.25, -1.25, 0);
         double inc = 0.05;  //this looked the best
-        g.setColor(Color.blue);
+        g.setColor(Color.green);
         for(double y = -1.25; y <= 1.25; y += inc){
             for(double x = -1.25; x <= 1.25; x+=inc){
                 //draw the small square
@@ -635,8 +634,6 @@ public class Model extends JComponent
         g.setColor(Color.black);
         DrawAxes(g);
         Branding(g, "z = (x^2) + (y^2) - (x^3) - 8*x*(y^4)");
-
-
      }
 
      /*
@@ -684,10 +681,10 @@ public class Model extends JComponent
         z = x*x + y*y - (x*x*x) - 8*x*y*y*y*y;
         return z;
      }
-     
+
      /*
-     * Draws my name, class, date, and assignment #
-     * Drawn in Quadrant 1, Top Left corner
+     * Draws my name, class, date, assignment #, and label
+     * Drawn in the Center
      */
      public static void Branding(Graphics g, String str){
         g.setColor(Color.black);
@@ -807,13 +804,13 @@ public class Model extends JComponent
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -spacing);
         Assembly side3 = new Assembly(side_array, ActiveTransform, null, "Side 3");
 
+        // Color requirements meant this had to be done separately
         g.setColor(Color.red);
         side1.Assemble(g, IDENTITY);
         g.setColor(Color.blue);
         side2.Assemble(g, IDENTITY);
         g.setColor(Color.green);
         side3.Assemble(g, IDENTITY);
-
      }
 
      /*
@@ -825,7 +822,6 @@ public class Model extends JComponent
         double [][]ActiveTransform = new double[4][4];
         Assembly []EMPTY = new Assembly[0];
         Assembly []ceilingAssembly = new Assembly[0];
-        Assembly []doorAssembly = new Assembly[0];
 
         //origin
         Point3D [] floorPoints = new Point3D [9];
@@ -841,12 +837,35 @@ public class Model extends JComponent
 
         Object floor = new Object(floorPoints, IDENTITY, "Floor");
         floor.DrawObject(g, IDENTITY);
-        ConnectWalls(g, floor);
+        ConnectWalls(g, floor, 132);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 132);
         Assembly ceiling = new Assembly(EMPTY, ActiveTransform, floor, "Ceiling");
 
         ceiling.Assemble(g, IDENTITY);
+
+        Point3D [] hallwayCeilingPoints = new Point3D[4];
+        //81x104.75
+        hallwayCeilingPoints[0] = new Point3D(0, 0, 0);
+        hallwayCeilingPoints[1] = new Point3D(85.75, 0, 0);
+        hallwayCeilingPoints[2] = new Point3D(85.75, 0, -81);
+        hallwayCeilingPoints[3] = new Point3D(0, 0, -81);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 103);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
+        Object hallwayCeiling = new Object(hallwayCeilingPoints, ActiveTransform, "Hallway ceiling");
+        hallwayCeiling.DrawObject(g, IDENTITY);
+
+        hallwayCeilingPoints[0].SetCoords(0, 0, 0);
+        hallwayCeilingPoints[1].SetCoords(0, 29, 0);
+        hallwayCeilingPoints[2].SetCoords(0, 29, -81);
+        hallwayCeilingPoints[3].SetCoords(0, 0, -81);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 103);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        Object hallwayWall = new Object(hallwayCeilingPoints, ActiveTransform, "Hallway wall");
+        hallwayWall.DrawObject(g, IDENTITY);
 
         Point3D [] pillarPoints = new Point3D[4];
         pillarPoints[0] = new Point3D(-70.75, 0, -182.5);
@@ -857,9 +876,14 @@ public class Model extends JComponent
         Object pillar = new Object(pillarPoints, IDENTITY, "Pillar");
         pillar.DrawObject(g, IDENTITY);
 
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_TRANS, 103);
         Assembly pillarAssembly = new Assembly(EMPTY, ActiveTransform, pillar, "Top of Pillar");
         pillarAssembly.Assemble(g, IDENTITY);
-        ConnectWalls(g, pillar);
+        ConnectWalls(g, pillar, 103);
+
+        /*
+        *   BEGIN DOOR ASSEMBLY
+        */
 
         Point3D[] doorPoints = new Point3D[4];
         doorPoints[0] = new Point3D(0, 0, 0);
@@ -867,49 +891,97 @@ public class Model extends JComponent
         doorPoints[2] = new Point3D(35.75, 87, 0);
         doorPoints[3] = new Point3D(0, 87, 0);
 
+        Assembly []doorAssembly = new Assembly[0];
+
+        // all the doors are magenta
+        g.setColor(Color.magenta);
         Object door = new Object(doorPoints, IDENTITY, "Door");
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -53.75);
         Assembly door1 = new Assembly(EMPTY, ActiveTransform, door, "Alves Foss");
-
-        door1.Assemble(g, IDENTITY);
+        doorAssembly = AppendToArray(doorAssembly, door1);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -251.375);
         Assembly door2 = new Assembly(EMPTY, ActiveTransform, door, "Terrence Soule");
-
-        door2.Assemble(g, IDENTITY);
+        doorAssembly = AppendToArray(doorAssembly, door2);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -369.375);
         Assembly door3 = new Assembly(EMPTY, ActiveTransform, door, "Daniel Conte De Leon");
-
-        door3.Assemble(g, IDENTITY);
+        doorAssembly = AppendToArray(doorAssembly, door3);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -568.125);
         Assembly door4 = new Assembly(EMPTY, ActiveTransform, door, "Greg Donahoe");
-
-        door4.Assemble(g, IDENTITY);
+        doorAssembly = AppendToArray(doorAssembly, door4);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -644.875);
         Assembly door5 = new Assembly(EMPTY, ActiveTransform, door, "Robert Rinker");
-
-        door5.Assemble(g, IDENTITY);
+        doorAssembly = AppendToArray(doorAssembly, door5);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 62.25);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -727.125);
         Assembly door6 = new Assembly(EMPTY, ActiveTransform, door, "East Office Door");
+        doorAssembly = AppendToArray(doorAssembly, door6);
 
-        door6.Assemble(g, IDENTITY);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -691.375);
+        Assembly door7 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
+        doorAssembly = AppendToArray(doorAssembly, door7);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -655.625);
+        Assembly door8 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
+        doorAssembly = AppendToArray(doorAssembly, door8);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -474.875);
+        Assembly door9 = new Assembly(EMPTY, ActiveTransform, door, "CS Office");
+        doorAssembly = AppendToArray(doorAssembly, door9);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        Assembly door10 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery");
+        doorAssembly = AppendToArray(doorAssembly, door10);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -123.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        Assembly door11 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery Side Entrance");
+        doorAssembly = AppendToArray(doorAssembly, door11);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -196.75);
+        Assembly door12 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden");
+        doorAssembly = AppendToArray(doorAssembly, door12);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -87.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -232.5);
+        Assembly door13 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden Side Entrance");
+        doorAssembly = AppendToArray(doorAssembly, door13);
+
+        Assembly buildDoors = new Assembly(doorAssembly, IDENTITY, null, "Door Assembly");
+        buildDoors.Assemble(g, IDENTITY);
+
+        /*
+        *   END DOOR ASSEMBLY
+        */
+
+        g.setColor(Color.black);
 
         Point3D []windowPoints = new Point3D[4];
         windowPoints[0] = new Point3D(-51.75, 38, -727.125);
@@ -920,60 +992,18 @@ public class Model extends JComponent
 
         window.DrawObject(g, IDENTITY);
 
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -691.375);
-        Assembly door7 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
+        /*
+        *   BEGIN BOARD ASSEMBLY
+        */
 
-        door7.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -655.625);
-        Assembly door8 = new Assembly(EMPTY, ActiveTransform, door, "North Entrance");
-
-        door8.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -474.875);
-        Assembly door9 = new Assembly(EMPTY, ActiveTransform, door, "CS Office");
-
-        door9.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
-        Assembly door10 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery");
-
-        door10.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.X_TRANS, -123.5);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
-        Assembly door11 = new Assembly(EMPTY, ActiveTransform, door, "Clinton Jeffery Side Entrance");
-
-        door11.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -156.5);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -196.75);
-        Assembly door12 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden");
-
-        door12.Assemble(g, IDENTITY);
-
-        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -87.75);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -232.5);
-        Assembly door13 = new Assembly(EMPTY, ActiveTransform, door, "Bruce Bolden Side Entrance");
-
-        door13.Assemble(g, IDENTITY);
-
+        Assembly []board_array = new Assembly[0];
         // boards on the wall
         Point3D[] boardPoints = new Point3D[4];
         boardPoints[0] = new Point3D(0, 0, 0);
         boardPoints[1] = new Point3D(36, 0, 0);
         boardPoints[2] = new Point3D(36, 24, 0);
         boardPoints[3] = new Point3D(0, 24, 0);
+        g.setColor(Color.blue);
 
         Object board = new Object(boardPoints, IDENTITY, "Board");
 
@@ -982,16 +1012,76 @@ public class Model extends JComponent
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -107.75);
         Assembly board1 = new Assembly(EMPTY, ActiveTransform, board, "Alves Foss Board");
-
-        board1.Assemble(g, IDENTITY);
+        board_array = AppendToArray(board_array, board1);
 
         ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
         ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
-        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -107.75);
-        Assembly board2 = new Assembly(EMPTY, ActiveTransform, board, "Alves Foss Board");
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -300.625);
+        Assembly board2 = new Assembly(EMPTY, ActiveTransform, board, "Terrence Soule Board");
+        board_array = AppendToArray(board_array, board2);
 
-        board1.Assemble(g, IDENTITY);
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -430.375);
+        Assembly board3 = new Assembly(EMPTY, ActiveTransform, board, "Daniel Conte De Leon Board");
+        board_array = AppendToArray(board_array, board3);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -513.375);
+        Assembly board4 = new Assembly(EMPTY, ActiveTransform, board, "Greg Donahoe Board");
+        board_array = AppendToArray(board_array, board4);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, 70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -699.875);
+        Assembly board5 = new Assembly(EMPTY, ActiveTransform, board, "Robert Rinker Board");
+        board_array = AppendToArray(board_array, board5);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, -180);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_ROT, -90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -152.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -232.5);
+        Assembly board6 = new Assembly(EMPTY, ActiveTransform, board, "Bruce Bolden Board");
+        board_array = AppendToArray(board_array, board6);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -130.5);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 48);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -151.5);
+        Assembly board7 = new Assembly(EMPTY, ActiveTransform, board, "Clint Jeffery Board");
+        board_array = AppendToArray(board_array, board7);
+
+        Assembly boardAssembly = new Assembly(board_array, IDENTITY, null, "Board Assembly");
+        boardAssembly.Assemble(g, IDENTITY);
+
+        /*
+        *   END BOARD ASSEMBLY
+        */
+
+        //bulletin board and trophy case
+        boardPoints[0].SetCoords(0, 0, 0);
+        boardPoints[1].SetCoords(96, 0, 0);
+        boardPoints[2].SetCoords(96, 53, 0);
+        boardPoints[3].SetCoords(0, 53, 0);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Y_ROT, 90);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.X_TRANS, -70.75);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Y_TRANS, 33);
+        ActiveTransform = BuildElementaryTransform(ActiveTransform, TRANSFORM_CODE.Z_TRANS, -30);
+
+        Object bulletBoard = new Object(boardPoints, ActiveTransform, "Bulletin Board");
+        bulletBoard.DrawObject(g, IDENTITY);
+
+        ActiveTransform = BuildElementaryTransform(IDENTITY, TRANSFORM_CODE.Z_TRANS, -262.5);
+        Assembly trophyCase = new Assembly(EMPTY, ActiveTransform, bulletBoard, "Trophy Case");
+
+        trophyCase.Assemble(g, IDENTITY);
 
         Branding(g, "Hallway Model");
 
@@ -999,13 +1089,14 @@ public class Model extends JComponent
      }
 
      /*
-     *  Connects the floor object to the ceiling by attaching all vertices
+     *  Takes in an object and a height and connects all the points of the object 
+     *  from the floor to the specified height
      */
-     public static void ConnectWalls(Graphics g, Object floorObject){
+     public static void ConnectWalls(Graphics g, Object floorObject, double y){
         Point3D topPoint = new Point3D(0, 0, 0);
         for(int i = 0; i < floorObject.vertices.length; i++){
             Move3D(floorObject.vertices[i], floorObject.aT, CAMERA);
-            topPoint.SetCoords(floorObject.vertices[i].x, 132, floorObject.vertices[i].z);
+            topPoint.SetCoords(floorObject.vertices[i].x, y, floorObject.vertices[i].z);
             Draw3D(g, topPoint, floorObject.aT, CAMERA);
         }
      }
@@ -1017,7 +1108,7 @@ public class Model extends JComponent
 
         double [][]ActiveTransform = IDENTITY;
 
-        double startSpot = -12;
+        double startSpot = -12; // make sure the name is 
         //J
         Point3D []jpoints = new Point3D[10];
         jpoints[0] = new Point3D(0, 0, 0);
